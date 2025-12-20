@@ -1,5 +1,8 @@
 name: Epic Free Games WhatsApp Alert
 
+permissions:
+  contents: write
+
 on:
   schedule:
     - cron: "0 * * * *"
@@ -13,24 +16,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      
       - name: Run Epic Alert Script
         env:
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
           WHATSAPP_TO: ${{ secrets.WHATSAPP_TO }}
         run: python epic_free_game.py
-
 
       - name: Commit sent games state
         run: |
