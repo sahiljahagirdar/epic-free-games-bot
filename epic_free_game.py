@@ -2,8 +2,15 @@ import requests
 import json
 import os
 from datetime import datetime, timezone
+from twilio.rest import Client
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 URL = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions"
+
+
 DATA_FILE = "sent_games.json"
 
 
@@ -21,10 +28,12 @@ def save_sent_games(game_ids):
 
 def get_free_games():
     response = requests.get(URL)
+    response.raise_for_status()
     data = response.json()
-    games = data["data"]["Catalog"]["searchStore"]["elements"]
 
+    games = data["data"]["Catalog"]["searchStore"]["elements"]
     now = datetime.now(timezone.utc)
+
     free_games = []
 
     for game in games:
@@ -34,12 +43,18 @@ def get_free_games():
 
         for promo in promotions.get("promotionalOffers", []):
             for offer in promo.get("promotionalOffers", []):
-                start = datetime.fromisoformat(offer["startDate"].replace("Z", "+00:00"))
-                end = datetime.fromisoformat(offer["endDate"].replace("Z", "+00:00"))
+                start = datetime.fromisoformat(
+                    offer["startDate"].replace("Z", "+00:00")
+                )
+                end = datetime.fromisoformat(
+                    offer["endDate"].replace("Z", "+00:00")
+                )
 
+                # Offer must be active right now
                 if not (start <= now <= end):
                     continue
 
+                # Must be 100% free
                 if offer["discountSetting"]["discountPercentage"] != 0:
                     continue
 
@@ -56,20 +71,40 @@ def get_free_games():
     return free_games
 
 
+def send_whatsapp_message(message):
+    client = Client(
+        os.getenv("TWILIO_ACCOUNT_SID"),
+        os.getenv("TWILIO_AUTH_TOKEN")
+    )
+
+    client.messages.create(
+        body=message,
+        from_="whatsapp:+14155238886", 
+        to=os.getenv("WHATSAPP_TO")
+    )
+
+
 if __name__ == "__main__":
     sent_games = load_sent_games()
     free_games = get_free_games()
 
+    # Detect new free games only
     new_games = [g for g in free_games if g["id"] not in sent_games]
 
     if not new_games:
         print("No new free games.")
     else:
-        print("🎮 NEW Free Games on Epic Games:\n")
+        message = "🎮 *New Free Games on Epic Games!*\n\n"
+
         for game in new_games:
             link = f"https://store.epicgames.com/en-US/p/{game['slug']}"
-            print(f"• {game['title']}")
-            print(f"  Claim: {link}\n")
+            message += f"• {game['title']}\n"
+            message += f"👉 {link}\n\n"
             sent_games.add(game["id"])
 
+        
+        print(message)
+        send_whatsapp_message(message)
+
+        
         save_sent_games(sent_games)
