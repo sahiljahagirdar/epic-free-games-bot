@@ -72,15 +72,19 @@ def get_free_games():
 
 
 def send_whatsapp_message(message):
-    client = Client(
-        os.getenv("TWILIO_ACCOUNT_SID"),
-        os.getenv("TWILIO_AUTH_TOKEN")
-    )
+    sid = os.getenv("TWILIO_ACCOUNT_SID")
+    token = os.getenv("TWILIO_AUTH_TOKEN")
+    to = os.getenv("WHATSAPP_TO")
+
+    if not sid or not token or not to:
+        raise RuntimeError("Twilio credentials are missing in environment variables")
+
+    client = Client(sid, token)
 
     client.messages.create(
         body=message,
-        from_="whatsapp:+14155238886", 
-        to=os.getenv("WHATSAPP_TO")
+        from_="whatsapp:+14155238886",
+        to=to
     )
 
 
