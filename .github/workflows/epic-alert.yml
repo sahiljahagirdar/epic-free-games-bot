@@ -29,7 +29,7 @@ jobs:
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
           WHATSAPP_TO: ${{ secrets.WHATSAPP_TO }}
-        run: python epic_free_games.py
+        run: python epic_free_game.py
 
 
       - name: Commit sent games state
