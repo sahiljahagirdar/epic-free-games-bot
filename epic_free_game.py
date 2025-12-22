@@ -70,11 +70,15 @@ def get_free_games():
 
 def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
+    params = {
+        "chat_id": int(TELEGRAM_CHAT_ID),  # cast to int (important)
         "text": message
     }
-    response = requests.post(url, data=payload)
+    response = requests.post(url, params=params, timeout=10)
+
+    if response.status_code != 200:
+        print("Telegram error response:", response.text)
+
     response.raise_for_status()
 
 
