@@ -102,9 +102,7 @@ if __name__ == "__main__":
             message += f"👉 {link}\n\n"
             sent_games.add(game["id"])
 
-        
-        print(message)
-        send_telegram_message(message)
+    print(message)
+    send_telegram_message(message)
+    save_sent_games(sent_games)
 
-        
-        save_sent_games(sent_games)
