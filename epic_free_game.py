@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
 
 URL = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions"
 
@@ -71,21 +74,15 @@ def get_free_games():
     return free_games
 
 
-def send_whatsapp_message(message):
-    sid = os.getenv("TWILIO_ACCOUNT_SID")
-    token = os.getenv("TWILIO_AUTH_TOKEN")
-    to = os.getenv("WHATSAPP_TO")
-
-    if not sid or not token or not to:
-        raise RuntimeError("Twilio credentials are missing in environment variables")
-
-    client = Client(sid, token)
-
-    client.messages.create(
-        body=message,
-        from_="whatsapp:+14155238886",
-        to=to
-    )
+def send_telegram_message(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": message,
+        "parse_mode": "Markdown"
+    }
+    response = requests.post(url, json=payload)
+    response.raise_for_status()
 
 
 if __name__ == "__main__":
@@ -108,7 +105,7 @@ if __name__ == "__main__":
 
         
         print(message)
-        send_whatsapp_message(message)
+        send_telegram_message(message)
 
         
         save_sent_games(sent_games)
