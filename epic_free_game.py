@@ -94,7 +94,7 @@ if __name__ == "__main__":
     if not new_games:
         print("No new free games.")
     else:
-        message = "🎮 *New Free Games on Epic Games!*\n\n"
+        message = "🎮 New Free Games on Epic Games!\n\n"
 
         for game in new_games:
             link = f"https://store.epicgames.com/en-US/p/{game['slug']}"
