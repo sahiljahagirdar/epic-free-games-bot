@@ -1,4 +1,4 @@
-name: Epic Free Games WhatsApp Alert
+name: Epic Free Games Telegram Alert
 
 permissions:
   contents: write
@@ -26,17 +26,13 @@ jobs:
 
       - name: Run Epic Alert Script
         env:
-          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-          WHATSAPP_TO: ${{ secrets.WHATSAPP_TO }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python epic_free_game.py
 
-      - name: Commit sent games state
+      - name: Commit state files
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add sent_games.json
-          git diff --cached --quiet || git commit -m "Update sent games state"
+          git add sent_games.json users.json
+          git diff --cached --quiet || git commit -m "Update state files"
           git push
