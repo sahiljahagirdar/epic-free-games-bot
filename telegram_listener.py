@@ -33,8 +33,18 @@ def listen():
             text = message.get("text", "")
 
             if text == "/start":
-                save_user(chat_id)
-                send_message(chat_id, "🎮 You’re subscribed to Epic Free Games alerts!")
+                if user_exists(chat_id):
+                    send_message(
+                        chat_id,
+                        "✅ Already subscribed, you will receive the updates 😄"
+                    )
+                else:
+                    save_user(chat_id)
+                    send_message(
+                        chat_id,
+                        "🎮 You’re subscribed to Epic Free Games alerts!"
+                    )
+
 
 if __name__ == "__main__":
     listen()

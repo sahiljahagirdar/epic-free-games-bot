@@ -6,7 +6,8 @@ from bot_users import get_all_users
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 URL = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions"
-DATA_FILE = "sent_games.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.path.join(BASE_DIR, "sent_games.json")
 
 def load_sent_games():
     if not os.path.exists(DATA_FILE):
