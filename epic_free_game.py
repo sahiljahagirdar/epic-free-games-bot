@@ -4,23 +4,63 @@ import os
 from datetime import datetime, timezone
 from bot_users import get_all_users
 
+
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-URL = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions"
+EPIC_API_URL = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions"
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_FILE = os.path.join(BASE_DIR, "sent_games.json")
+SENT_GAMES_FILE = os.path.join(BASE_DIR, "sent_games.json")
+WELCOME_FILE = os.path.join(BASE_DIR, "welcomed_users.json")
+
+TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+
+
+def load_json_set(path):
+    if not os.path.exists(path):
+        return set()
+    with open(path, "r") as f:
+        try:
+            return set(json.load(f))
+        except json.JSONDecodeError:
+            return set()
+
+def save_json_set(path, data_set):
+    with open(path, "w") as f:
+        json.dump(list(data_set), f)
+
+
+def send_welcome_messages():
+    users = get_all_users()
+    welcomed_users = load_json_set(WELCOME_FILE)
+
+    for chat_id in users:
+        if chat_id not in welcomed_users:
+            requests.post(
+                TELEGRAM_API_URL,
+                data={
+                    "chat_id": chat_id,
+                    "text": (
+                        "🎉 *Yay! You’re subscribed to the Epic Free Games Bot* 🎮\n\n"
+                        "You’ll now receive alerts whenever Epic Games releases free games.\n"
+                        "Sit back and enjoy free gaming! 🚀"
+                    ),
+                    "parse_mode": "Markdown"
+                },
+                timeout=10
+            )
+            welcomed_users.add(chat_id)
+
+    save_json_set(WELCOME_FILE, welcomed_users)
+
 
 def load_sent_games():
-    if not os.path.exists(DATA_FILE):
-        return set()
-    with open(DATA_FILE, "r") as f:
-        return set(json.load(f))
+    return load_json_set(SENT_GAMES_FILE)
 
 def save_sent_games(game_ids):
-    with open(DATA_FILE, "w") as f:
-        json.dump(list(game_ids), f)
+    save_json_set(SENT_GAMES_FILE, game_ids)
 
 def get_free_games():
-    response = requests.get(URL)
+    response = requests.get(EPIC_API_URL, timeout=20)
     response.raise_for_status()
     data = response.json()
 
@@ -50,17 +90,23 @@ def get_free_games():
 
     return free_games
 
-def send_telegram_message(message):
+def send_game_alert(message):
     users = get_all_users()
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 
     for chat_id in users:
-        requests.post(url, data={
-            "chat_id": chat_id,
-            "text": message
-        })
+        requests.post(
+            TELEGRAM_API_URL,
+            data={
+                "chat_id": chat_id,
+                "text": message
+            },
+            timeout=10
+        )
+
 
 if __name__ == "__main__":
+    send_welcome_messages()
+
     sent_games = load_sent_games()
     free_games = get_free_games()
 
@@ -68,13 +114,14 @@ if __name__ == "__main__":
 
     if not new_games:
         print("No new free games.")
-        exit()
+        exit(0)
 
-    message = "🎮 New Free Games on Epic Games!\n\n"
+    message = "🎮 *New Free Games on Epic Games!*\n\n"
+
     for game in new_games:
         message += f"• {game['title']}\n"
         message += f"https://store.epicgames.com/en-US/p/{game['slug']}\n\n"
         sent_games.add(game["id"])
 
-    send_telegram_message(message)
+    send_game_alert(message)
     save_sent_games(sent_games)
