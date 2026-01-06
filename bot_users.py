@@ -17,3 +17,8 @@ def save_user(chat_id):
 
 def get_all_users():
     return load_users()
+
+def user_exists(chat_id: int) -> bool:
+    users = load_users()
+    return chat_id in users
+

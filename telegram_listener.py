@@ -1,7 +1,7 @@
 # telegram_listener.py
 import requests
 import os
-from bot_users import save_user
+from bot_users import save_user,user_exists
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
